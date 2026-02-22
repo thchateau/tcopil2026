@@ -6,10 +6,11 @@ A sophisticated machine learning system for predicting financial time series tre
 
 This project implements a **Transformer-based neural network** that simultaneously predicts trend directions (up/down) for **all technical indicators** across multiple financial instruments. The system uses:
 
-- **Input:** All numeric columns from Excel time series data (150 time steps)
+- **Input:** All numeric columns from Excel time series data (default: 150 time steps)
 - **Output:** Binary trend predictions for all columns (up/down) at 15 time steps horizon
 - **Architecture:** Multi-head Transformer with parallel binary classifiers
 - **Inference:** Bayesian Monte Carlo Dropout for uncertainty quantification
+- **✨ NEW:** Automatic padding for short sequences (v2.0) - files with < 150 points are now supported!
 
 ## 📊 Core Files
 
@@ -75,6 +76,11 @@ python test_inference_multi.py
 - **Train/test split** based on year exclusion (e.g., hold out 2020 for testing)
 - **Multi-file support** with selective loading (% of dataset)
 - **Normalization** per-sequence (z-score) to prevent data leakage
+- **✨ NEW (v2.0): Automatic padding** for short sequences
+  - Files with < 150 points are automatically padded and used
+  - Minimum requirement: 15 points per file
+  - Padding tracked in statistics and cache metadata
+  - See `PADDING_FEATURE.md` and `CHANGELOG_PADDING.md` for details
 
 ### Training
 - **Configurable hyperparameters** via Streamlit UI:

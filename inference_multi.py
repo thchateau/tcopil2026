@@ -180,18 +180,18 @@ class MultiTransformerInference:
     def _prepare_dataframe(self, df: pd.DataFrame) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
         """
         Prepare a DataFrame for inference.
+        Automatically pads short sequences with first row repetition.
         
         Returns:
             Tuple of (sequence, label) or (None, None) if preparation fails
         """
-        if len(df) < self.last_n_rows:
-            print(f"⚠️  DataFrame too short: {len(df)} < {self.last_n_rows}")
+        # Require at least prediction_horizon points (minimum for creating a label)
+        if len(df) < self.prediction_horizon:
+            print(f"⚠️  DataFrame too short: {len(df)} < {self.prediction_horizon}")
             return None, None
         
-        df_last = df.tail(self.last_n_rows)
-        
         # Get numeric columns
-        numeric_cols = df_last.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         
         # Initialize column names on first call if not loaded from model
         if self.column_names is None:
@@ -205,14 +205,21 @@ class MultiTransformerInference:
             return None, None
         
         # Use the same columns as training, in the SAME ORDER
-        # This is critical: pandas will reorder columns to match self.column_names
-        values = df_last[self.column_names].values
+        values = df[self.column_names].values
         
-        if len(values) < self.last_n_rows:
-            return None, None
+        # Handle cases with fewer than last_n_rows points (automatic padding)
+        n_rows = len(values)
+        if n_rows < self.last_n_rows:
+            # Pad with first row repeated (forward-fill before the sequence)
+            pad_length = self.last_n_rows - n_rows
+            pad = np.tile(values[0, :], (pad_length, 1))
+            values = np.vstack([pad, values])
+            print(f"ℹ️  DataFrame padded: {n_rows} → {len(values)} rows (pad_length={pad_length})")
+        
+        df_last = values[-self.last_n_rows:, :]
         
         # Extract sequence
-        sequence = values[:self.sequence_length, :]
+        sequence = df_last[:self.sequence_length, :]
         sequence = pd.DataFrame(sequence).ffill().bfill().values
         
         if np.any(np.isnan(sequence)):
@@ -220,8 +227,8 @@ class MultiTransformerInference:
             return None, None
         
         # Calculate label
-        values_at_150 = values[self.sequence_length - 1, :]
-        last_values = values[-1, :]
+        values_at_150 = df_last[self.sequence_length - 1, :]
+        last_values = df_last[-1, :]
         
         if np.any(np.isnan(values_at_150)) or np.any(np.isnan(last_values)):
             print("⚠️  NaN values found in label calculation")

@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333" text-anchor="middle">
+    MultiInputTransformerTrendPredictor
+  </text>
+  
+  <!-- Input Layer -->
+  <rect x="250" y="70" width="300" height="60" rx="5" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="95" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2e7d32" text-anchor="middle">
+    Input Sequence
+  </text>
+  <text x="400" y="115" font-family="Arial, sans-serif" font-size="12" fill="#555" text-anchor="middle">
+    Shape: (batch, 150, N_features)
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 400 130 L 400 160" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Input Projection -->
+  <rect x="250" y="160" width="300" height="50" rx="5" fill="url(#grad1)" stroke="#5e35b1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="182" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="white" text-anchor="middle">
+    Input Projection
+  </text>
+  <text x="400" y="200" font-family="Arial, sans-serif" font-size="11" fill="white" text-anchor="middle">
+    Linear(N_features → 128)
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 400 210 L 400 240" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Positional Encoding -->
+  <rect x="250" y="240" width="300" height="50" rx="5" fill="url(#grad3)" stroke="#0288d1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="262" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="white" text-anchor="middle">
+    Positional Encoding
+  </text>
+  <text x="400" y="280" font-family="Arial, sans-serif" font-size="11" fill="white" text-anchor="middle">
+    Sin/Cos embeddings
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 400 290 L 400 320" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Transformer Encoder Block -->
+  <rect x="200" y="320" width="400" height="200" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="3" filter="url(#shadow)"/>
+  <text x="400" y="345" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#e65100" text-anchor="middle">
+    Transformer Encoder (×4 layers)
+  </text>
+  
+  <!-- Multi-Head Attention -->
+  <rect x="220" y="360" width="360" height="45" rx="4" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+  <text x="400" y="380" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#f57f17" text-anchor="middle">
+    Multi-Head Self-Attention
+  </text>
+  <text x="400" y="397" font-family="Arial, sans-serif" font-size="10" fill="#666" text-anchor="middle">
+    8 heads, d_model=128
+  </text>
+  
+  <!-- Feed Forward -->
+  <rect x="220" y="420" width="360" height="45" rx="4" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+  <text x="400" y="440" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#01579b" text-anchor="middle">
+    Feed Forward Network
+  </text>
+  <text x="400" y="457" font-family="Arial, sans-serif" font-size="10" fill="#666" text-anchor="middle">
+    128 → 512 → 128 (ReLU, Dropout=0.1)
+  </text>
+  
+  <!-- Residual connections -->
+  <text x="400" y="490" font-family="Arial, sans-serif" font-size="10" fill="#999" text-anchor="middle" font-style="italic">
+    + Residual Connections + Layer Norm
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 400 520 L 400 550" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Global Average Pooling -->
+  <rect x="250" y="550" width="300" height="50" rx="5" fill="url(#grad2)" stroke="#c2185b" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="572" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="white" text-anchor="middle">
+    Global Average Pooling
+  </text>
+  <text x="400" y="590" font-family="Arial, sans-serif" font-size="11" fill="white" text-anchor="middle">
+    (batch, 150, 128) → (batch, 128)
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 400 600 L 400 630" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Parallel Classifiers Label -->
+  <text x="400" y="655" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">
+    Parallel Classifiers (one per target)
+  </text>
+  
+  <!-- Classifier 1 -->
+  <g>
+    <rect x="80" y="680" width="180" height="100" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2" filter="url(#shadow)"/>
+    <text x="170" y="700" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a237e" text-anchor="middle">
+      Classifier 1 (RSI)
+    </text>
+    <text x="170" y="720" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(128 → 64)
+    </text>
+    <text x="170" y="735" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      ReLU + Dropout
+    </text>
+    <text x="170" y="750" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(64 → 2)
+    </text>
+    <text x="170" y="770" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#3f51b5" text-anchor="middle">
+      [Down, Up]
+    </text>
+  </g>
+  
+  <!-- Classifier 2 -->
+  <g>
+    <rect x="310" y="680" width="180" height="100" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2" filter="url(#shadow)"/>
+    <text x="400" y="700" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a237e" text-anchor="middle">
+      Classifier 2 (MACD)
+    </text>
+    <text x="400" y="720" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(128 → 64)
+    </text>
+    <text x="400" y="735" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      ReLU + Dropout
+    </text>
+    <text x="400" y="750" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(64 → 2)
+    </text>
+    <text x="400" y="770" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#3f51b5" text-anchor="middle">
+      [Down, Up]
+    </text>
+  </g>
+  
+  <!-- Classifier N (dots) -->
+  <g>
+    <rect x="540" y="680" width="180" height="100" rx="5" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2" stroke-dasharray="5,5" filter="url(#shadow)"/>
+    <text x="630" y="700" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a237e" text-anchor="middle">
+      Classifier N (...)
+    </text>
+    <text x="630" y="720" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(128 → 64)
+    </text>
+    <text x="630" y="735" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      ReLU + Dropout
+    </text>
+    <text x="630" y="750" font-family="Arial, sans-serif" font-size="9" fill="#555" text-anchor="middle">
+      Linear(64 → 2)
+    </text>
+    <text x="630" y="770" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#3f51b5" text-anchor="middle">
+      [Down, Up]
+    </text>
+  </g>
+  
+  <!-- Arrows from pooling to classifiers -->
+  <path d="M 300 630 L 170 680" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 400 630 L 400 680" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 500 630 L 630 680" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Output -->
+  <rect x="250" y="820" width="300" height="60" rx="5" fill="#c8e6c9" stroke="#388e3c" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="845" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1b5e20" text-anchor="middle">
+    Output Predictions
+  </text>
+  <text x="400" y="865" font-family="Arial, sans-serif" font-size="12" fill="#555" text-anchor="middle">
+    Shape: (batch, N_targets, 2)
+  </text>
+  
+  <!-- Arrow from classifiers to output -->
+  <path d="M 170 780 L 350 820" stroke="#666" stroke-width="1.5" fill="none"/>
+  <path d="M 400 780 L 400 820" stroke="#666" stroke-width="1.5" fill="none"/>
+  <path d="M 630 780 L 450 820" stroke="#666" stroke-width="1.5" fill="none"/>
+  
+  <!-- Info box -->
+  <rect x="50" y="920" width="700" height="70" rx="5" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <text x="400" y="940" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">
+    Configuration: d_model=128 | heads=8 | layers=4 | dim_ff=512 | dropout=0.1
+  </text>
+  <text x="400" y="958" font-family="Arial, sans-serif" font-size="10" fill="#555" text-anchor="middle">
+    Input: 150 timesteps × N features → Output: N predictions (binary: Down/Up)
+  </text>
+  <text x="400" y="975" font-family="Arial, sans-serif" font-size="10" fill="#555" text-anchor="middle" font-style="italic">
+    Bayesian inference with Dropout enabled during inference for uncertainty estimation
+  </text>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
+    </marker>
+  </defs>
+</svg>

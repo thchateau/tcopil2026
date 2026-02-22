@@ -17,12 +17,14 @@ The system now **automatically pads short sequences** using forward-fill logic, 
 1. **Calculate required padding:** If file has N rows and N < sequence_length + prediction_horizon:
    - Pad length = (sequence_length + prediction_horizon) - N
    
-2. **Pad with first row:** Repeat the first row of the data `pad_length` times
-   - This preserves initial conditions and avoids artificial trends
-   - Example: File has [10, 20, 30] → Pad with [10, 10, 20, 30]
+2. **Pad with last row:** Repeat the last row of the data `pad_length` times at the END
+   - This preserves real data at the BEGINNING of the sequence
+   - Avoids artificial jumps
+   - Better for model learning
+   - Example: File has [10, 20, 30] → Pad with [10, 20, 30, 30, 30, ...]
 
 3. **Extract sequence:** Take the last `sequence_length + prediction_horizon` points:
-   - Sequence: first `sequence_length` points
+   - Sequence: first `sequence_length` points (REAL DATA at beginning)
    - Prediction point: point at position `sequence_length`
    - Label: Compare last point with prediction point
 

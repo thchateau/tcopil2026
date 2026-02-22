@@ -20,20 +20,23 @@ The system now **accepts Excel files with fewer than 150 points**, automatically
 
 ### 🔧 Technical Implementation
 
-**Padding Method: Forward-fill from first row**
+**Padding Method: Forward-fill from LAST row (append at end)**
 
 ```
 Original file: [10, 20, 30] (3 rows)
 Required: 165 rows (150 + 15)
 Padding needed: 162 rows
 
-Result: [10, 10, 10, ..., 10 (162x), 20, 30]
+Result: [10, 20, 30, 30, 30, ..., 30 (162x)]
+        Real data at beginning ↑
 ```
 
 **Why this approach?**
-- Preserves real starting conditions
-- Doesn't create artificial upward/downward trends
-- Works well with z-score normalization
+- ✅ Real data at BEGINNING of input sequence
+- ✅ Padding at END (less important for model)
+- ✅ Better signal-to-noise ratio
+- ✅ No artificial jumps
+- ✅ Works well with z-score normalization
 
 ### 📊 How to Use
 
@@ -112,25 +115,27 @@ Result: [10, 10, 10, ..., 10 (162x), 20, 30]
 
 **Test with a 50-point file:**
 
-```bash
-python3 << 'EOF'
+**Test with a tiny file:**
+
+```python
+# Create 30-row test file
 import pandas as pd
 import numpy as np
 
-# Create 50-row file
 df = pd.DataFrame({
-    'Price': np.linspace(100, 120, 50),
-    'Volume': np.random.randint(1e6, 10e6, 50)
+    'Close': np.linspace(100, 120, 30),
+    'Volume': np.random.randint(1e6, 10e6, 30)
 })
-df.to_excel('test_small_data.xlsx', index=False)
-EOF
+df.to_excel('test_30rows.xlsx', index=False)
 
 # Use in Streamlit
-mkdir -p test_data
-mv test_small_data.xlsx test_data/
-streamlit run streamlit_predict_multi.py
-# Select "test_data" → "Start Training"
-# See: "75 padded" (or similar) in output
+# mkdir -p test_data
+# mv test_30rows.xlsx test_data/
+# streamlit run streamlit_predict_multi.py
+# → Select "test_data"
+# → See: "1 padded" in output
+# → Real data (30 points) at beginning of input sequence
+# → Padding (120 points of constant value) at end
 ```
 
 ### 💡 Performance Impact

@@ -104,16 +104,17 @@ if len(df) < min_required_rows:
 
 ### Q4: What's the padding method?
 
-**A:** Repeat the first row of data. This:
-- ✅ Preserves real starting values
+**A:** Repeat the LAST row at the END. This:
+- ✅ Keeps real data at the BEGINNING of input
+- ✅ Better signal-to-noise ratio  
+- ✅ Less artificial patterns
 - ✅ Works with normalization
-- ✅ Doesn't create artificial trends
 
 Example:
 ```
 Original: [10, 20, 30]
-Padded:   [10, 10, 10, ..., 10, 20, 30]
-          (first row repeated to fill)
+Padded:   [10, 20, 30, 30, 30, ..., 30]
+          Real data at beginning ↑
 ```
 
 ### Q5: Do I need to retrain old models?

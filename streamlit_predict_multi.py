@@ -274,10 +274,10 @@ def load_and_prepare_data(data_dir, exclude_year=None, progress_bar=None, file_p
                 n_rows = len(values)
                 
                 if n_rows < last_n_rows:
-                    # Pad with first row repeated (forward-fill before the sequence)
+                    # Pad with last row repeated (append at end to preserve real data at beginning)
                     pad_length = last_n_rows - n_rows
-                    pad = np.tile(values[0, :], (pad_length, 1))
-                    values = np.vstack([pad, values])
+                    pad = np.tile(values[-1, :], (pad_length, 1))
+                    values = np.vstack([values, pad])
                     padded += 1
                 
                 # Get the last last_n_rows points

@@ -1,0 +1,43 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    🔄 MISE À JOUR RAPIDE - 3 ÉTAPES                        ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+📥 PREMIÈRE FOIS (Clonage Initial):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+$ git clone https://github.com/thchateau/tcopil2026.git
+$ cd tcopil2026
+
+
+🔄 MISE À JOUR (Déjà cloné):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+$ cd tcopil2026
+$ git pull origin main
+$ rm -rf cached_datasets/
+
+
+✅ VÉRIFICATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+$ git log -1 --oneline
+# Devrait afficher: e38eff2 Improve padding strategy...
+
+
+🚀 UTILISER LA NOUVELLE VERSION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+$ streamlit run streamlit_predict_multi.py
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RÉSUMÉ:
+  ✓ Clone initial: 1 commande
+  ✓ Mise à jour: 3 commandes (cd + git pull + rm cache)
+  ✓ Documentation complète: voir GIT_UPDATE_GUIDE.md
+  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

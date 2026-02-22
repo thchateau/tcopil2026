@@ -74,7 +74,7 @@ def get_cache_paths(config_hash):
     }
 
 def save_cache(cache_paths, train_sequences, train_labels, test_sequences, test_labels, 
-               column_names, config, n_train_files, n_test_files, train_skipped, test_skipped):
+               column_names, config, n_train_files, n_test_files, train_skipped, test_skipped, train_padded=0, test_padded=0):
     """Save processed data to cache files."""
     # Save config
     with open(cache_paths['config'], 'w') as f:
@@ -95,6 +95,8 @@ def save_cache(cache_paths, train_sequences, train_labels, test_sequences, test_
         'n_test_files': n_test_files,
         'train_skipped': train_skipped,
         'test_skipped': test_skipped,
+        'train_padded': train_padded,
+        'test_padded': test_padded,
         'train_shape': train_sequences.shape,
         'test_shape': test_sequences.shape if test_sequences is not None else None
     }
@@ -126,7 +128,8 @@ def load_cache(cache_paths):
     
     return (train_sequences, train_labels, test_sequences, test_labels,
             metadata['column_names'], metadata['n_train_files'], metadata['n_test_files'],
-            metadata['train_skipped'], metadata['test_skipped'])
+            metadata['train_skipped'], metadata['test_skipped'],
+            metadata.get('train_padded', 0), metadata.get('test_padded', 0))
 
 class MultiTimeSeriesDataset(Dataset):
     """Dataset for multi-input time series trend prediction."""
@@ -238,6 +241,7 @@ def load_and_prepare_data(data_dir, exclude_year=None, progress_bar=None, file_p
         labels = []
         column_names = None
         skipped = 0
+        padded = 0
         
         for idx, file_path in enumerate(files):
             if progress_bar:
@@ -246,38 +250,48 @@ def load_and_prepare_data(data_dir, exclude_year=None, progress_bar=None, file_p
             try:
                 df = pd.read_excel(file_path)
                 
-                if len(df) < last_n_rows:
+                # Require at least prediction_horizon points (minimum for creating a label)
+                if len(df) < prediction_horizon:
                     skipped += 1
                     continue
                 
-                df_last = df.tail(last_n_rows)
-                
+                # Get numeric columns if not yet defined
                 if column_names is None:
-                    numeric_cols = df_last.select_dtypes(include=[np.number]).columns.tolist()
+                    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
                     column_names = numeric_cols
                 
-                values = df_last[column_names].values
+                values = df[column_names].values
                 
-                if len(values) < last_n_rows:
+                # Check for NaN values
+                if np.any(np.isnan(values)):
+                    values = pd.DataFrame(values).ffill().bfill().values
+                
+                if np.any(np.isnan(values)):
                     skipped += 1
                     continue
                 
-                sequence = values[:sequence_length, :]
-                sequence = pd.DataFrame(sequence).ffill().bfill().values
+                # Handle cases with fewer than last_n_rows points
+                n_rows = len(values)
                 
-                if np.any(np.isnan(sequence)):
-                    skipped += 1
-                    continue
+                if n_rows < last_n_rows:
+                    # Pad with first row repeated (forward-fill before the sequence)
+                    pad_length = last_n_rows - n_rows
+                    pad = np.tile(values[0, :], (pad_length, 1))
+                    values = np.vstack([pad, values])
+                    padded += 1
                 
-                values_at_150 = values[sequence_length - 1, :]
-                last_values = values[-1, :]
+                # Get the last last_n_rows points
+                df_last = values[-last_n_rows:, :]
                 
-                if np.any(np.isnan(values_at_150)) or np.any(np.isnan(last_values)):
-                    skipped += 1
-                    continue
+                # Extract sequence and prediction point
+                sequence = df_last[:sequence_length, :]
+                values_at_seq_end = df_last[sequence_length - 1, :]
+                last_values = df_last[-1, :]
                 
-                label = (last_values > values_at_150).astype(int)
+                # Create label: 1 if increased, 0 if decreased
+                label = (last_values > values_at_seq_end).astype(int)
                 
+                # Normalize sequence
                 seq_mean = np.mean(sequence, axis=0, keepdims=True)
                 seq_std = np.std(sequence, axis=0, keepdims=True)
                 seq_std[seq_std == 0] = 1
@@ -293,17 +307,17 @@ def load_and_prepare_data(data_dir, exclude_year=None, progress_bar=None, file_p
         sequences = np.array(sequences)
         labels = np.array(labels)
         
-        return sequences, labels, column_names, skipped
+        return sequences, labels, column_names, skipped, padded
     
-    train_sequences, train_labels, column_names, train_skipped = process_files(train_files)
+    train_sequences, train_labels, column_names, train_skipped, train_padded = process_files(train_files)
     
     if test_files:
-        test_sequences, test_labels, _, test_skipped = process_files(test_files)
+        test_sequences, test_labels, _, test_skipped, test_padded = process_files(test_files)
     else:
-        test_sequences, test_labels, test_skipped = None, None, 0
+        test_sequences, test_labels, test_skipped, test_padded = None, None, 0, 0
     
     return (train_sequences, train_labels, test_sequences, test_labels, 
-            column_names, len(train_files), len(test_files), train_skipped, test_skipped)
+            column_names, len(train_files), len(test_files), train_skipped, test_skipped, train_padded, test_padded)
 
 
 def bayesian_predict(model, sequences, n_samples=50):
@@ -1068,18 +1082,18 @@ def main():
         if cached_data is not None:
             st.info(f"✅ Loading from cache (hash: {config_hash})...")
             (train_sequences, train_labels, test_sequences, test_labels, 
-             column_names, n_train_files, n_test_files, train_skipped, test_skipped) = cached_data
+             column_names, n_train_files, n_test_files, train_skipped, test_skipped, train_padded, test_padded) = cached_data
             st.success(f"✅ Loaded from cache in milliseconds!")
         else:
             with st.spinner("Loading and preprocessing data from Excel files..."):
                 (train_sequences, train_labels, test_sequences, test_labels, 
-                 column_names, n_train_files, n_test_files, train_skipped, test_skipped) = \
+                 column_names, n_train_files, n_test_files, train_skipped, test_skipped, train_padded, test_padded) = \
                     load_and_prepare_data(data_dir, exclude_year, progress_bar, file_percentage, sequence_length, prediction_horizon)
             
             # Save to cache
             st.info(f"💾 Saving to cache (hash: {config_hash})...")
             save_cache(cache_paths, train_sequences, train_labels, test_sequences, test_labels,
-                      column_names, config, n_train_files, n_test_files, train_skipped, test_skipped)
+                      column_names, config, n_train_files, n_test_files, train_skipped, test_skipped, train_padded, test_padded)
             st.success(f"✅ Cache saved for future use!")
         
         progress_bar.empty()
@@ -1089,10 +1103,13 @@ def main():
             return
         
         # Display data statistics
-        st.success(f"✅ Loaded {n_train_files} training files ({train_skipped} skipped) and {n_test_files} test files ({test_skipped} skipped)")
+        st.success(f"✅ Loaded {n_train_files} training files ({train_skipped} skipped, {train_padded} padded) and {n_test_files} test files ({test_skipped} skipped, {test_padded} padded)")
         st.info(f"📊 **Features/Targets:** {len(column_names)} columns")
         st.info(f"📊 **Shape:** Input: ({len(train_sequences)}, {sequence_length}, {len(column_names)}) → Output: ({len(train_sequences)}, {len(column_names)})")
         st.info(f"📊 **Data Window:** Using last {sequence_length + prediction_horizon} points = {sequence_length} input + {prediction_horizon} forecast horizon")
+        
+        if train_padded > 0 or test_padded > 0:
+            st.warning(f"⚠️ **Padding Applied:** {train_padded + test_padded} files were padded because they had fewer than {sequence_length + prediction_horizon} points")
         
         # Show column names
         with st.expander("📋 Column Names"):
